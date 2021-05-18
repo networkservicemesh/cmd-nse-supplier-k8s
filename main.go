@@ -59,13 +59,14 @@ import (
 
 // Config holds configuration parameters from environment variables
 type Config struct {
-	Name             string            `default:"nse-supplier-k8s" desc:"Name of the Server"`
-	ConnectTo        url.URL           `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
-	MaxTokenLifetime time.Duration     `default:"24h" desc:"maximum lifetime of tokens" split_words:"true"`
-	ServiceName      string            `default:"nse-supplier-k8s" desc:"Name of providing service" split_words:"true"`
-	Payload          string            `default:"ETHERNET" desc:"Name of provided service payload" split_words:"true"`
-	Labels           map[string]string `default:"" desc:"Endpoint labels"`
-	PodDescription   string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created"`
+	Name               string            `default:"nse-supplier-k8s" desc:"Name of the Server"`
+	ConnectTo          url.URL           `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
+	MaxTokenLifetime   time.Duration     `default:"24h" desc:"maximum lifetime of tokens" split_words:"true"`
+	ServiceName        string            `default:"nse-supplier-k8s" desc:"Name of providing service" split_words:"true"`
+	Payload            string            `default:"ETHERNET" desc:"Name of provided service payload" split_words:"true"`
+	Labels             map[string]string `default:"" desc:"Endpoint labels"`
+	PodDescriptionFile string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created"`
+	Namespace          string            `default:"default" desc:"Namespace in which new pods will be created"`
 }
 
 // Process prints and processes env to config
@@ -161,7 +162,7 @@ func main() {
 	}
 	log.FromContext(ctx).Infof("successfully obtained kubernetes client")
 
-	podYamlFile, err := ioutil.ReadFile(config.PodDescription)
+	podYamlFile, err := ioutil.ReadFile(config.PodDescriptionFile)
 	if err != nil {
 		log.FromContext(ctx).Fatalf("can't read pod file: %+v", err)
 	}
@@ -180,7 +181,7 @@ func main() {
 		endpoint.WithName(config.Name),
 		endpoint.WithAuthorizeServer(authorize.NewServer()),
 		endpoint.WithAdditionalFunctionality(
-			createpod.NewServer(client, &podDesc),
+			createpod.NewServer(client, &podDesc, createpod.WithNamespace(config.Namespace)),
 		),
 	)
 	// ********************************************************************************
