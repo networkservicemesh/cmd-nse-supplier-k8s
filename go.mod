@@ -13,8 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spiffe/go-spiffe/v2 v2.0.0-beta.5
 	google.golang.org/grpc v1.37.1
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.21.0
-	k8s.io/apimachinery v0.21.0 // indirect
+	k8s.io/apimachinery v0.21.0
 	k8s.io/client-go v0.21.0
 )
