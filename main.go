@@ -232,15 +232,6 @@ func main() {
 		log.FromContext(ctx).Fatalf("error establishing grpc connection to registry server %+v", err)
 	}
 
-	_, err = registryclient.NewNetworkServiceRegistryClient(cc).Register(context.Background(), &registryapi.NetworkService{
-		Name:    config.ServiceName,
-		Payload: config.Payload,
-	})
-
-	if err != nil {
-		log.FromContext(ctx).Fatalf("unable to register ns %+v", err)
-	}
-
 	registryClient := registryclient.NewNetworkServiceEndpointRegistryClient(ctx, cc)
 	nse, err := registryClient.Register(context.Background(), &registryapi.NetworkServiceEndpoint{
 		Name:                config.Name,
