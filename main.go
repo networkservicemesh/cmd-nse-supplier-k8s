@@ -20,6 +20,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -37,8 +38,9 @@ import (
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -149,7 +151,7 @@ func main() {
 	log.FromContext(ctx).Infof("SVID: %q", svid.ID)
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 3: getting kubernetes config")
+	log.FromContext(ctx).Infof("executing phase 3: getting kubernetes config and pod description")
 	// ********************************************************************************
 	kubeConfig, err := rest.InClusterConfig()
 	if err != nil {
@@ -161,16 +163,26 @@ func main() {
 	}
 	log.FromContext(ctx).Infof("successfully obtained kubernetes client")
 
-	podYamlFile, err := ioutil.ReadFile(config.PodDescriptionFile)
+	scheme := runtime.NewScheme()
+	codecFactory := serializer.NewCodecFactory(scheme)
+	deserializer := codecFactory.UniversalDeserializer()
+	podYamlBytes, err := ioutil.ReadFile(config.PodDescriptionFile)
 	if err != nil {
 		log.FromContext(ctx).Fatalf("can't read pod file: %+v", err)
 	}
+
 	var podDesc corev1.Pod
-	err = yaml.Unmarshal(podYamlFile, &podDesc)
+	_, _, err = deserializer.Decode(podYamlBytes, nil, &podDesc)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't unmarshal pod file: %+v", err)
+		log.FromContext(ctx).Fatalf("can't parse pod file: %+v", err)
 	}
 	log.FromContext(ctx).Infof("successfully parsed pod description")
+
+	podPrettyPrint, err := json.MarshalIndent(podDesc, "", "  ")
+	if err != nil {
+		log.FromContext(ctx).Fatalf("can't pretty-print pod file: %+v", err)
+	}
+	log.FromContext(ctx).Infof(string(podPrettyPrint))
 
 	// ********************************************************************************
 	log.FromContext(ctx).Infof("executing phase 4: create supplier endpoint")
