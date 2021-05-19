@@ -117,8 +117,8 @@ func main() {
 	log.FromContext(ctx).Infof("the phases include:")
 	log.FromContext(ctx).Infof("1: get config from environment")
 	log.FromContext(ctx).Infof("2: retrieve spiffe svid")
-	log.FromContext(ctx).Infof("3: create icmp server ipam")
-	log.FromContext(ctx).Infof("4: create icmp server nse")
+	log.FromContext(ctx).Infof("3: get kubernetes config")
+	log.FromContext(ctx).Infof("4: create supplier endpoint")
 	log.FromContext(ctx).Infof("5: create grpc and mount nse")
 	log.FromContext(ctx).Infof("6: register nse with nsm")
 	log.FromContext(ctx).Infof("a final success message with start time duration")
@@ -130,7 +130,7 @@ func main() {
 	// ********************************************************************************
 	config := new(Config)
 	if err := config.Process(); err != nil {
-		logrus.Fatal(err.Error())
+		log.FromContext(ctx).Fatal(err.Error())
 	}
 
 	log.FromContext(ctx).Infof("Config: %#v", config)
@@ -140,18 +140,17 @@ func main() {
 	// ********************************************************************************
 	source, err := workloadapi.NewX509Source(ctx)
 	if err != nil {
-		logrus.Fatalf("error getting x509 source: %+v", err)
+		log.FromContext(ctx).Fatalf("error getting x509 source: %+v", err)
 	}
 	svid, err := source.GetX509SVID()
 	if err != nil {
-		logrus.Fatalf("error getting x509 svid: %+v", err)
+		log.FromContext(ctx).Fatalf("error getting x509 svid: %+v", err)
 	}
 	log.FromContext(ctx).Infof("SVID: %q", svid.ID)
 
 	// ********************************************************************************
 	log.FromContext(ctx).Infof("executing phase 3: getting kubernetes config")
 	// ********************************************************************************
-	// build configuration from the config file.
 	kubeConfig, err := rest.InClusterConfig()
 	if err != nil {
 		log.FromContext(ctx).Fatalf("can't get kuberneted config. Are you running this app inside kuberneted pod?")
@@ -174,9 +173,9 @@ func main() {
 	log.FromContext(ctx).Infof("successfully parsed pod description")
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 4: create network service endpoint")
+	log.FromContext(ctx).Infof("executing phase 4: create supplier endpoint")
 	// ********************************************************************************
-	responderEndpoint := endpoint.NewServer(ctx,
+	supplierEndpoint := endpoint.NewServer(ctx,
 		spiffejwt.TokenGeneratorFunc(source, config.MaxTokenLifetime),
 		endpoint.WithName(config.Name),
 		endpoint.WithAuthorizeServer(authorize.NewServer()),
@@ -184,6 +183,7 @@ func main() {
 			createpod.NewServer(client, &podDesc, createpod.WithNamespace(config.Namespace)),
 		),
 	)
+
 	// ********************************************************************************
 	log.FromContext(ctx).Infof("executing phase 5: create grpc server and register the server")
 	// ********************************************************************************
@@ -198,10 +198,10 @@ func main() {
 		),
 	)
 	server := grpc.NewServer(options...)
-	responderEndpoint.Register(server)
+	supplierEndpoint.Register(server)
 	tmpDir, err := ioutil.TempDir("", config.Name)
 	if err != nil {
-		logrus.Fatalf("error creating tmpDir %+v", err)
+		log.FromContext(ctx).Fatalf("error creating tmpDir %+v", err)
 	}
 	defer func(tmpDir string) { _ = os.Remove(tmpDir) }(tmpDir)
 	listenOn := &(url.URL{Scheme: "unix", Path: filepath.Join(tmpDir, "listen.on")})
@@ -243,11 +243,10 @@ func main() {
 		},
 		Url: listenOn.String(),
 	})
-	logrus.Infof("nse: %+v", nse)
-
 	if err != nil {
 		log.FromContext(ctx).Fatalf("unable to register nse %+v", err)
 	}
+	log.FromContext(ctx).Infof("nse: %+v", nse)
 
 	// ********************************************************************************
 	log.FromContext(ctx).Infof("startup completed in %v", time.Since(starttime))
