@@ -103,8 +103,10 @@ func main() {
 	ctx = log.WithFields(ctx, map[string]interface{}{"cmd": os.Args[0]})
 	ctx = log.WithLog(ctx, logruslogger.New(ctx))
 
+	logger := log.FromContext(ctx)
+
 	if err := debug.Self(); err != nil {
-		log.FromContext(ctx).Infof("%s", err)
+		logger.Infof("%s", err)
 	}
 
 	// ********************************************************************************
@@ -115,77 +117,77 @@ func main() {
 	defer func() { _ = jaegerCloser.Close() }()
 
 	// enumerating phases
-	log.FromContext(ctx).Infof("there are 6 phases which will be executed followed by a success message:")
-	log.FromContext(ctx).Infof("the phases include:")
-	log.FromContext(ctx).Infof("1: get config from environment")
-	log.FromContext(ctx).Infof("2: retrieve spiffe svid")
-	log.FromContext(ctx).Infof("3: get kubernetes config")
-	log.FromContext(ctx).Infof("4: create supplier endpoint")
-	log.FromContext(ctx).Infof("5: create grpc and mount nse")
-	log.FromContext(ctx).Infof("6: register nse with nsm")
-	log.FromContext(ctx).Infof("a final success message with start time duration")
+	logger.Infof("there are 6 phases which will be executed followed by a success message:")
+	logger.Infof("the phases include:")
+	logger.Infof("1: get config from environment")
+	logger.Infof("2: retrieve spiffe svid")
+	logger.Infof("3: get kubernetes config")
+	logger.Infof("4: create supplier endpoint")
+	logger.Infof("5: create grpc and mount nse")
+	logger.Infof("6: register nse with nsm")
+	logger.Infof("a final success message with start time duration")
 
 	starttime := time.Now()
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 1: get config from environment")
+	logger.Infof("executing phase 1: get config from environment")
 	// ********************************************************************************
 	config := new(Config)
 	if err := config.Process(); err != nil {
-		log.FromContext(ctx).Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
 
-	log.FromContext(ctx).Infof("Config: %#v", config)
+	logger.Infof("Config: %#v", config)
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 2: retrieving svid, check spire agent logs if this is the last line you see")
+	logger.Infof("executing phase 2: retrieving svid, check spire agent logs if this is the last line you see")
 	// ********************************************************************************
 	source, err := workloadapi.NewX509Source(ctx)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("error getting x509 source: %+v", err)
+		logger.Fatalf("error getting x509 source: %+v", err)
 	}
 	svid, err := source.GetX509SVID()
 	if err != nil {
-		log.FromContext(ctx).Fatalf("error getting x509 svid: %+v", err)
+		logger.Fatalf("error getting x509 svid: %+v", err)
 	}
-	log.FromContext(ctx).Infof("SVID: %q", svid.ID)
+	logger.Infof("SVID: %q", svid.ID)
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 3: getting kubernetes config and pod description")
+	logger.Infof("executing phase 3: getting kubernetes config and pod description")
 	// ********************************************************************************
 	kubeConfig, err := rest.InClusterConfig()
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't get kuberneted config. Are you running this app inside kuberneted pod?")
+		logger.Fatalf("can't get kuberneted config. Are you running this app inside kuberneted pod?")
 	}
 	client, err := kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't get kubernetes client")
+		logger.Fatalf("can't get kubernetes client")
 	}
-	log.FromContext(ctx).Infof("successfully obtained kubernetes client")
+	logger.Infof("successfully obtained kubernetes client")
 
 	scheme := runtime.NewScheme()
 	codecFactory := serializer.NewCodecFactory(scheme)
 	deserializer := codecFactory.UniversalDeserializer()
 	podYamlBytes, err := ioutil.ReadFile(config.PodDescriptionFile)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't read pod file: %+v", err)
+		logger.Fatalf("can't read pod file: %+v", err)
 	}
 
 	var podDesc corev1.Pod
 	_, _, err = deserializer.Decode(podYamlBytes, nil, &podDesc)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't parse pod file: %+v", err)
+		logger.Fatalf("can't parse pod file: %+v", err)
 	}
-	log.FromContext(ctx).Infof("successfully parsed pod description")
+	logger.Infof("successfully parsed pod description")
 
 	podPrettyPrint, err := json.MarshalIndent(podDesc, "", "  ")
 	if err != nil {
-		log.FromContext(ctx).Fatalf("can't pretty-print pod file: %+v", err)
+		logger.Fatalf("can't pretty-print pod file: %+v", err)
 	}
-	log.FromContext(ctx).Infof(string(podPrettyPrint))
+	logger.Infof(string(podPrettyPrint))
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 4: create supplier endpoint")
+	logger.Infof("executing phase 4: create supplier endpoint")
 	// ********************************************************************************
 	supplierEndpoint := endpoint.NewServer(ctx,
 		spiffejwt.TokenGeneratorFunc(source, config.MaxTokenLifetime),
@@ -197,7 +199,7 @@ func main() {
 	)
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 5: create grpc server and register the server")
+	logger.Infof("executing phase 5: create grpc server and register the server")
 	// ********************************************************************************
 	options := append(
 		opentracing.WithTracing(),
@@ -213,16 +215,16 @@ func main() {
 	supplierEndpoint.Register(server)
 	tmpDir, err := ioutil.TempDir("", config.Name)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("error creating tmpDir %+v", err)
+		logger.Fatalf("error creating tmpDir %+v", err)
 	}
 	defer func(tmpDir string) { _ = os.Remove(tmpDir) }(tmpDir)
 	listenOn := &(url.URL{Scheme: "unix", Path: filepath.Join(tmpDir, "listen.on")})
 	srvErrCh := grpcutils.ListenAndServe(ctx, listenOn, server)
 	exitOnErr(ctx, cancel, srvErrCh)
-	log.FromContext(ctx).Infof("grpc server started")
+	logger.Infof("grpc server started")
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("executing phase 6: register nse with nsm")
+	logger.Infof("executing phase 6: register nse with nsm")
 	// ********************************************************************************
 	clientOptions := append(
 		opentracing.WithTracingDial(),
@@ -241,7 +243,7 @@ func main() {
 		clientOptions...,
 	)
 	if err != nil {
-		log.FromContext(ctx).Fatalf("error establishing grpc connection to registry server %+v", err)
+		logger.Fatalf("error establishing grpc connection to registry server %+v", err)
 	}
 
 	registryClient := registryclient.NewNetworkServiceEndpointRegistryClient(ctx, cc)
@@ -256,12 +258,12 @@ func main() {
 		Url: listenOn.String(),
 	})
 	if err != nil {
-		log.FromContext(ctx).Fatalf("unable to register nse %+v", err)
+		logger.Fatalf("unable to register nse %+v", err)
 	}
-	log.FromContext(ctx).Infof("nse: %+v", nse)
+	logger.Infof("nse: %+v", nse)
 
 	// ********************************************************************************
-	log.FromContext(ctx).Infof("startup completed in %v", time.Since(starttime))
+	logger.Infof("startup completed in %v", time.Since(starttime))
 	// ********************************************************************************
 
 	// wait for server to exit
