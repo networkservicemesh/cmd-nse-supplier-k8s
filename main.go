@@ -45,8 +45,8 @@ import (
 	"k8s.io/client-go/rest"
 
 	registryapi "github.com/networkservicemesh/api/pkg/api/registry"
-
 	"github.com/networkservicemesh/sdk-k8s/pkg/networkservice/common/createpod"
+
 	"github.com/networkservicemesh/sdk/pkg/networkservice/chains/endpoint"
 	"github.com/networkservicemesh/sdk/pkg/networkservice/common/authorize"
 	registryclient "github.com/networkservicemesh/sdk/pkg/registry/chains/client"
@@ -194,7 +194,7 @@ func main() {
 		endpoint.WithName(config.Name),
 		endpoint.WithAuthorizeServer(authorize.NewServer()),
 		endpoint.WithAdditionalFunctionality(
-			createpod.NewServer(client, &podDesc, createpod.WithNamespace(config.Namespace)),
+			createpod.NewServer(ctx, client, &podDesc, createpod.WithNamespace(config.Namespace)),
 		),
 	)
 
