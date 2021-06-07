@@ -23,4 +23,4 @@ CMD dlv -l :40000 --headless=true --api-version=2 test -test.v ./...
 
 FROM alpine as runtime
 COPY --from=build /bin/nse-supplier-k8s /bin/nse-supplier-k8s
-CMD /bin/nse-supplier-k8s
+ENTRYPOINT [ "/bin/nse-supplier-k8s" ]
