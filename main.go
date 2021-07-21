@@ -63,7 +63,7 @@ import (
 type Config struct {
 	Name               string            `default:"nse-supplier-k8s" desc:"Name of the Server" split_words:"true"`
 	ConnectTo          url.URL           `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
-	MaxTokenLifetime   time.Duration     `default:"24h" desc:"maximum lifetime of tokens" split_words:"true"`
+	MaxTokenLifetime   time.Duration     `default:"10m" desc:"maximum lifetime of tokens" split_words:"true"`
 	ServiceName        string            `default:"nse-supplier-k8s" desc:"Name of providing service" split_words:"true"`
 	Payload            string            `default:"ETHERNET" desc:"Name of provided service payload" split_words:"true"`
 	Labels             map[string]string `default:"" desc:"Endpoint labels" split_words:"true"`
