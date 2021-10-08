@@ -69,6 +69,7 @@ type Config struct {
 	Labels             map[string]string `default:"" desc:"Endpoint labels" split_words:"true"`
 	PodDescriptionFile string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created" split_words:"true"`
 	Namespace          string            `default:"default" desc:"Namespace in which new pods will be created" split_words:"true"`
+	LogLevel           string            `default:"INFO" desc:"Log level" split_words:"true"`
 }
 
 // Process prints and processes env to config
@@ -136,6 +137,7 @@ func main() {
 	if err := config.Process(); err != nil {
 		logger.Fatal(err.Error())
 	}
+	setLogLevel(config.LogLevel)
 
 	logger.Infof("Config: %#v", config)
 
@@ -276,4 +278,12 @@ func exitOnErr(ctx context.Context, cancel context.CancelFunc, errCh <-chan erro
 		log.FromContext(ctx).Error(err)
 		cancel()
 	}(ctx, errCh)
+}
+
+func setLogLevel(level string) {
+	l, err := logrus.ParseLevel(level)
+	if err != nil {
+		logrus.Fatalf("invalid log level %s", level)
+	}
+	logrus.SetLevel(l)
 }
