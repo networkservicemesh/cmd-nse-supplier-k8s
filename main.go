@@ -137,8 +137,11 @@ func main() {
 	if err := config.Process(); err != nil {
 		logger.Fatal(err.Error())
 	}
-	setLogLevel(config.LogLevel)
-
+	l, err := logrus.ParseLevel(config.LogLevel)
+	if err != nil {
+		logrus.Fatalf("invalid log level %s", config.LogLevel)
+	}
+	logrus.SetLevel(l)
 	logger.Infof("Config: %#v", config)
 
 	// ********************************************************************************
@@ -278,12 +281,4 @@ func exitOnErr(ctx context.Context, cancel context.CancelFunc, errCh <-chan erro
 		log.FromContext(ctx).Error(err)
 		cancel()
 	}(ctx, errCh)
-}
-
-func setLogLevel(level string) {
-	l, err := logrus.ParseLevel(level)
-	if err != nil {
-		logrus.Fatalf("invalid log level %s", level)
-	}
-	logrus.SetLevel(l)
 }
