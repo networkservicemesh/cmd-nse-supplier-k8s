@@ -101,8 +101,7 @@ func main() {
 	// setup logging
 	// ********************************************************************************
 	logrus.SetFormatter(&nested.Formatter{})
-	ctx = log.WithFields(ctx, map[string]interface{}{"cmd": os.Args[0]})
-	ctx = log.WithLog(ctx, logruslogger.New(ctx))
+	ctx = log.WithLog(ctx, logruslogger.New(ctx, map[string]interface{}{"cmd": os.Args[0]}))
 
 	logger := log.FromContext(ctx)
 
