@@ -21,7 +21,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -39,9 +38,6 @@ import (
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
@@ -181,26 +177,10 @@ func main() {
 	}
 	logger.Infof("successfully obtained kubernetes client")
 
-	scheme := runtime.NewScheme()
-	codecFactory := serializer.NewCodecFactory(scheme)
-	deserializer := codecFactory.UniversalDeserializer()
 	podYamlBytes, err := ioutil.ReadFile(config.PodDescriptionFile)
 	if err != nil {
 		logger.Fatalf("can't read pod file: %+v", err)
 	}
-
-	var podDesc corev1.Pod
-	_, _, err = deserializer.Decode(podYamlBytes, nil, &podDesc)
-	if err != nil {
-		logger.Fatalf("can't parse pod file: %+v", err)
-	}
-	logger.Infof("successfully parsed pod description")
-
-	podPrettyPrint, err := json.MarshalIndent(podDesc, "", "  ")
-	if err != nil {
-		logger.Fatalf("can't pretty-print pod file: %+v", err)
-	}
-	logger.Infof(string(podPrettyPrint))
 
 	// ********************************************************************************
 	logger.Infof("executing phase 4: create supplier endpoint")
@@ -210,7 +190,7 @@ func main() {
 		endpoint.WithName(config.Name),
 		endpoint.WithAuthorizeServer(authorize.NewServer()),
 		endpoint.WithAdditionalFunctionality(
-			createpod.NewServer(ctx, client, &podDesc, createpod.WithNamespace(config.Namespace)),
+			createpod.NewServer(ctx, client, string(podYamlBytes), createpod.WithNamespace(config.Namespace)),
 		),
 	)
 
