@@ -237,7 +237,7 @@ func main() {
 
 	nseRegistryClient := registryclient.NewNetworkServiceEndpointRegistryClient(
 		ctx,
-		&config.ConnectTo,
+		registryclient.WithClientURL(&config.ConnectTo),
 		registryclient.WithDialOptions(clientOptions...),
 		registryclient.WithNSEAdditionalFunctionality(sendfd.NewNetworkServiceEndpointRegistryClient()),
 	)
