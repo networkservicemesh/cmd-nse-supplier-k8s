@@ -3,7 +3,6 @@ package imports
 
 import (
 	_ "context"
-	_ "encoding/json"
 	_ "github.com/antonfisher/nested-logrus-formatter"
 	_ "github.com/edwarnicke/grpcfd"
 	_ "github.com/kelseyhightower/envconfig"
@@ -27,9 +26,6 @@ import (
 	_ "google.golang.org/grpc"
 	_ "google.golang.org/grpc/credentials"
 	_ "io/ioutil"
-	_ "k8s.io/api/core/v1"
-	_ "k8s.io/apimachinery/pkg/runtime"
-	_ "k8s.io/apimachinery/pkg/runtime/serializer"
 	_ "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/rest"
 	_ "net/url"
