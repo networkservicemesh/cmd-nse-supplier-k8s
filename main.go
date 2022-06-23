@@ -48,6 +48,7 @@ import (
 	"github.com/networkservicemesh/sdk/pkg/networkservice/chains/endpoint"
 	"github.com/networkservicemesh/sdk/pkg/networkservice/common/authorize"
 	registryclient "github.com/networkservicemesh/sdk/pkg/registry/chains/client"
+	"github.com/networkservicemesh/sdk/pkg/registry/common/clientinfo"
 	"github.com/networkservicemesh/sdk/pkg/registry/common/sendfd"
 	"github.com/networkservicemesh/sdk/pkg/tools/debug"
 	"github.com/networkservicemesh/sdk/pkg/tools/grpcutils"
@@ -245,7 +246,10 @@ func main() {
 		ctx,
 		registryclient.WithClientURL(&config.ConnectTo),
 		registryclient.WithDialOptions(clientOptions...),
-		registryclient.WithNSEAdditionalFunctionality(sendfd.NewNetworkServiceEndpointRegistryClient()),
+		registryclient.WithNSEAdditionalFunctionality(
+			clientinfo.NewNetworkServiceEndpointRegistryClient(),
+			sendfd.NewNetworkServiceEndpointRegistryClient(),
+		),
 	)
 
 	nse, err := nseRegistryClient.Register(ctx, &registryapi.NetworkServiceEndpoint{
