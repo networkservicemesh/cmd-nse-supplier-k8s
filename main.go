@@ -63,16 +63,17 @@ import (
 
 // Config holds configuration parameters from environment variables
 type Config struct {
-	Name                  string            `default:"nse-supplier-k8s" desc:"Name of the Server" split_words:"true"`
-	ConnectTo             url.URL           `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
-	MaxTokenLifetime      time.Duration     `default:"10m" desc:"maximum lifetime of tokens" split_words:"true"`
-	ServiceName           string            `default:"nse-supplier-k8s" desc:"Name of providing service" split_words:"true"`
-	Payload               string            `default:"ETHERNET" desc:"Name of provided service payload" split_words:"true"`
-	Labels                map[string]string `default:"" desc:"Endpoint labels" split_words:"true"`
-	PodDescriptionFile    string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created" split_words:"true"`
-	Namespace             string            `default:"default" desc:"Namespace in which new pods will be created" split_words:"true"`
-	LogLevel              string            `default:"INFO" desc:"Log level" split_words:"true"`
-	OpenTelemetryEndpoint string            `default:"otel-collector.observability.svc.cluster.local:4317" desc:"OpenTelemetry Collector Endpoint"`
+	Name                   string            `default:"nse-supplier-k8s" desc:"Name of the Server" split_words:"true"`
+	ConnectTo              url.URL           `default:"unix:///var/lib/networkservicemesh/nsm.io.sock" desc:"url to connect to" split_words:"true"`
+	MaxTokenLifetime       time.Duration     `default:"10m" desc:"maximum lifetime of tokens" split_words:"true"`
+	RegistryClientPolicies []string          `default:"etc/nsm/opa/common/.*.rego,etc/nsm/opa/registry/.*.rego,etc/nsm/opa/client/.*.rego" desc:"paths to files and directories that contain registry client policies" split_words:"true"`
+	ServiceName            string            `default:"nse-supplier-k8s" desc:"Name of providing service" split_words:"true"`
+	Payload                string            `default:"ETHERNET" desc:"Name of provided service payload" split_words:"true"`
+	Labels                 map[string]string `default:"" desc:"Endpoint labels" split_words:"true"`
+	PodDescriptionFile     string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created" split_words:"true"`
+	Namespace              string            `default:"default" desc:"Namespace in which new pods will be created" split_words:"true"`
+	LogLevel               string            `default:"INFO" desc:"Log level" split_words:"true"`
+	OpenTelemetryEndpoint  string            `default:"otel-collector.observability.svc.cluster.local:4317" desc:"OpenTelemetry Collector Endpoint"`
 }
 
 // Process prints and processes env to config
@@ -256,7 +257,9 @@ func main() {
 			clientinfo.NewNetworkServiceEndpointRegistryClient(),
 			sendfd.NewNetworkServiceEndpointRegistryClient(),
 		),
-		registryclient.WithAuthorizeNSERegistryClient(registryauthorize.NewNetworkServiceEndpointRegistryClient()),
+		registryclient.WithAuthorizeNSERegistryClient(registryauthorize.NewNetworkServiceEndpointRegistryClient(
+			registryauthorize.WithPolicies(config.RegistryClientPolicies...),
+		)),
 	)
 
 	nse, err := nseRegistryClient.Register(ctx, &registryapi.NetworkServiceEndpoint{
