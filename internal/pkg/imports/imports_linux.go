@@ -29,7 +29,6 @@ import (
 	_ "github.com/spiffe/go-spiffe/v2/workloadapi"
 	_ "google.golang.org/grpc"
 	_ "google.golang.org/grpc/credentials"
-	_ "io/ioutil"
 	_ "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/rest"
 	_ "net/url"
