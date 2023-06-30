@@ -1,4 +1,6 @@
-// Copyright (c) 2021-2022 Doc.ai and/or its affiliates.
+// Copyright (c) 2021-2023 Doc.ai and/or its affiliates.
+//
+// Copyright (c) 2023 Cisco and/or its affiliates.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -22,7 +24,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"os/signal"
@@ -187,7 +188,7 @@ func main() {
 	}
 	logger.Infof("successfully obtained kubernetes client")
 
-	podYamlBytes, err := ioutil.ReadFile(config.PodDescriptionFile)
+	podYamlBytes, err := os.ReadFile(config.PodDescriptionFile)
 	if err != nil {
 		logger.Fatalf("can't read pod file: %+v", err)
 	}
@@ -219,7 +220,7 @@ func main() {
 	)
 	server := grpc.NewServer(options...)
 	supplierEndpoint.Register(server)
-	tmpDir, err := ioutil.TempDir("", config.Name)
+	tmpDir, err := os.MkdirTemp("", config.Name)
 	if err != nil {
 		logger.Fatalf("error creating tmpDir %+v", err)
 	}
