@@ -8,7 +8,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/networkservicemesh/api v1.10.1-0.20230822145124-c4a3ece88804
 	github.com/networkservicemesh/sdk v0.5.1-0.20230915092224-d68a6f4ada08
-	github.com/networkservicemesh/sdk-k8s v0.0.0-20230915092923-b2217adabcc2
+	github.com/networkservicemesh/sdk-k8s v0.0.0-20230915092202-14a8d4d2ed08
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spiffe/go-spiffe/v2 v2.0.0
