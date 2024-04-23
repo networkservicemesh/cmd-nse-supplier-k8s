@@ -74,7 +74,7 @@ type Config struct {
 	PodDescriptionFile     string            `default:"pod.yaml" desc:"Path to the file that describes pod to be created" split_words:"true"`
 	Namespace              string            `default:"default" desc:"Namespace in which new pods will be created" split_words:"true"`
 	LogLevel               string            `default:"INFO" desc:"Log level" split_words:"true"`
-	OpenTelemetryEndpoint  string            `default:"otel-collector.observability.svc.cluster.local:4317" desc:"OpenTelemetry Collector Endpoint"`
+	OpenTelemetryEndpoint  string            `default:"otel-collector.observability.svc.cluster.local:4317" desc:"OpenTelemetry Collector Endpoint" split_words:"true"`
 	MetricsExportInterval  time.Duration     `default:"10s" desc:"interval between mertics exports" split_words:"true"`
 }
 
