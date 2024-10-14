@@ -147,6 +147,10 @@ func main() {
 	}
 	logrus.SetLevel(l)
 	logger.Infof("Config: %#v", config)
+	logruslogger.SetupLevelChangeOnSignal(ctx, map[os.Signal]logrus.Level{
+		syscall.SIGUSR1: logrus.TraceLevel,
+		syscall.SIGUSR2: l,
+	})
 
 	// ********************************************************************************
 	// Configure Open Telemetry
