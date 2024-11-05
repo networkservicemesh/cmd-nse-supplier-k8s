@@ -7,8 +7,8 @@ require (
 	github.com/edwarnicke/grpcfd v1.1.4
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/networkservicemesh/api v1.13.4-0.20240815101554-fdbfcd84fd0e
-	github.com/networkservicemesh/sdk v0.5.1-0.20241015095655-7ebf92ea74d7
-	github.com/networkservicemesh/sdk-k8s v0.0.0-20241023073817-a0a20fea26ff
+	github.com/networkservicemesh/sdk v0.5.1-0.20241105144227-370b7b5f046c
+	github.com/networkservicemesh/sdk-k8s v0.0.0-20241105145807-d2e270ca9224
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spiffe/go-spiffe/v2 v2.1.7
@@ -38,7 +38,7 @@ require (
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.2.0 // indirect
+	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -78,7 +78,7 @@ require (
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/term v0.18.0 // indirect
